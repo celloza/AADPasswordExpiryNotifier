@@ -5,6 +5,24 @@ In some cases, users may have multiple user accounts in different Azure AD tenan
 
 Without using SSPR (which requires certain licensing, and involves extra costs) this solution notifies the user about their pending password reset via email (through SendGrid, O365, or whatever).
 
+## How the solution works
+The Logic App performs a number of steps, which can be reduced to the following pseudo-code:
+1.	A request is received via HTTP to run the app
+2.	Extract the configuration parameters provided in the body of the request
+3.	Get all users in the directory (specified in the DirectoryId variable)
+4.	Iterate through all the users, and build a list of actions to be taken:
+a.	Calculate each user’s password’s expiry date from the date it was last set, and the DaysToExpiryFromLastSet configuration parameter
+b.	If this date falls on FirstWarningDays, add an action item to send the First email warning
+c.	If this date falls on SecondWarningDays, add an action to send the Second email warning
+d.	If this date falls on ThirdWarningDays, add an action to send the Third email warning
+> This approach expects that the Logic App will run daily. If not, certain users may not receive certain notifications. This approach was chosen as it provides the simplest solution to not repeatedly email users.
+> A possible improvement would involve saving the state of the notifications to a storage account
+
+5.	Iterate through the resulting action list, and:
+a.	Check if the user’s mail property is not null
+b.	Send an email to the user
+> The action list is built first and then executed, to ensure that a single step was created containing the email body to be sent. If the email body needs to change (which may be frequently), it needs to only change in one place as a result
+
 ## Deploying the solution automatically
 
 [![Deploy To Azure](https://docs.microsoft.com/en-us/azure/templates/media/deploy-to-azure.svg)](https://portal.azure.com/#blade/Microsoft_Azure_CreateUIDef/CustomDeploymentBlade/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fgrimstoner%2FAADPasswordExpiryNotifier%2Fmaster%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fgrimstoner%2FAADPasswordExpiryNotifier%2Fmaster%2FazuredeployUI.json)
@@ -151,23 +169,7 @@ See these resources for information:
 - [Call logic apps from Power Automate and Power Apps](https://docs.microsoft.com/en-us/azure/logic-apps/call-from-power-automate-power-apps)
 - [Create custom APIs you can call from Azure Logic Apps](https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-create-api-app)
 
-## How the solution works
-The Logic App performs a number of steps, which can be reduced to the following pseudo-code:
-1.	A request is received via HTTP to run the app
-2.	Extract the configuration parameters provided in the body of the request
-3.	Get all users in the directory (specified in the DirectoryId variable)
-4.	Iterate through all the users, and build a list of actions to be taken:
-a.	Calculate each user’s password’s expiry date from the date it was last set, and the DaysToExpiryFromLastSet configuration parameter
-b.	If this date falls on FirstWarningDays, add an action item to send the First email warning
-c.	If this date falls on SecondWarningDays, add an action to send the Second email warning
-d.	If this date falls on ThirdWarningDays, add an action to send the Third email warning
-> This approach expects that the Logic App will run daily. If not, certain users may not receive certain notifications. This approach was chosen as it provides the simplest solution to not repeatedly email users.
-> A possible improvement would involve saving the state of the notifications to a storage account
 
-5.	Iterate through the resulting action list, and:
-a.	Check if the user’s mail property is not null
-b.	Send an email to the user
-> The action list is built first and then executed, to ensure that a single step was created containing the email body to be sent. If the email body needs to change (which may be frequently), it needs to only change in one place as a result
  
 # Using the solution
 Basic monitoring and administration of the solution involves checking the Run History of both the AAD Password Expiry Notifier Logic App, and if so configured, the Trigger app. 
