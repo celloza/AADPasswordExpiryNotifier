@@ -14,9 +14,9 @@
                 "type": "Microsoft.Common.TextBox",
                 "label": "Logic App Name",
                 "defaultValue": "AADPasswordExpiryNotifier",
-                "toolTip": "Azure Logic App that identifies when Azure AD User Accounts' passwords are set to expire. In some cases, users may have multiple user accounts in different Azure AD tenants. These accounts may be different than what they use to login to their machines locally for example, and as such won't be notified about pending password expiry. Without using SSPR (which requires certain licensing, and involves extra costs) this solution notifies the user about their pending password reset via email (through SendGrid, O365, or whatever).",
+                "toolTip": "This will be the name of the LogicApp that will handle processing. Another LogicApp will be deployed with the same name, postfixed with '_Trigger'",
                 "constraints": {
-                    "required": false,
+                    "required": true,
                     "regex": "",
                     "validationMessage": ""
                 },
@@ -29,7 +29,7 @@
                 "defaultValue": "",
                 "toolTip": "Enter the client Id for the application with read access to Microsoft Graph API.",
                 "constraints": {
-                    "required": false,
+                    "required": true,
                     "regex": "",
                     "validationMessage": ""
                 },
@@ -42,7 +42,7 @@
                 "defaultValue": "",
                 "toolTip": "Enter the secret for the application with read access to Microsoft Graph API.",
                 "constraints": {
-                    "required": false,
+                    "required": true,
                     "regex": "",
                     "validationMessage": ""
                 },
@@ -55,7 +55,7 @@
                 "defaultValue": "",
                 "toolTip": "Enter the tenant Id to query users from.",
                 "constraints": {
-                    "required": false,
+                    "required": true,
                     "regex": "",
                     "validationMessage": ""
                 },
@@ -68,7 +68,7 @@
                 "defaultValue": "sendgrid",
                 "toolTip": "Enter the name of the SendGrid account to use to send emails.",
                 "constraints": {
-                    "required": false,
+                    "required": true,
                     "regex": "",
                     "validationMessage": ""
                 },
@@ -83,7 +83,7 @@
                 },
                 "toolTip": "Enter the SendGrid API key for the above account.",
                 "constraints": {
-                    "required": false,
+                    "required": true,
                     "regex": "",
                     "validationMessage": ""
                 },
@@ -99,7 +99,7 @@
                 "defaultValue": "Day",
                 "toolTip": "",
                 "constraints": {
-                    "required": false,
+                    "required": true,
                     "regex": "",
                     "validationMessage": ""
                 },
@@ -112,7 +112,7 @@
                 "defaultValue": "1",
                 "toolTip": "",
                 "constraints": {
-                    "required": false,
+                    "required": true,
                     "regex": "",
                     "validationMessage": ""
                 },
@@ -125,7 +125,7 @@
                 "defaultValue": "{\"hours\":[\"8\"],\"minutes\":[0]}",
                 "toolTip": "",
                 "constraints": {
-                    "required": false,
+                    "required": true,
                     "regex": "",
                     "validationMessage": ""
                 },
