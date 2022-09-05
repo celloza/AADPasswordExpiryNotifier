@@ -1,138 +1,140 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
-    "handler": "Microsoft.Azure.CreateUIDef",
-    "version": "0.1.2-preview",
-    "parameters": {
-        "resourceTypes": [
-            "microsoft.logic/workflows",
-            "microsoft.web/connections",
-            "microsoft.resources/resourcegroups"
-        ],
-        "basics": [
-            {
-                "name": "logicAppName",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Logic App Name",
-                "defaultValue": "AADPasswordExpiryNotifier",
-                "toolTip": "The name to use for the Logic App. A second LogicApp will be created (appended with '_Trigger') for the trigger.",
-                "constraints": {
-                    "required": true,
-                    "regex": "",
-                    "validationMessage": ""
-                },
-                "visible": true
-            },
-            {
-                "name": "MicrosoftGraphClientId",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Microsoft Graph Client Id",
-                "defaultValue": "",
-                "toolTip": "Enter the client Id for the application with read access to Microsoft Graph API.",
-                "constraints": {
-                    "required": true,
-                    "regex": "",
-                    "validationMessage": ""
-                },
-                "visible": true
-            },
-            {
-                "name": "MicrosoftGraphSecret",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Microsoft Graph Secret",
-                "defaultValue": "",
-                "toolTip": "Enter the secret for the application with read access to Microsoft Graph API.",
-                "constraints": {
-                    "required": true,
-                    "regex": "",
-                    "validationMessage": ""
-                },
-                "visible": true
-            },
-            {
-                "name": "MicrosoftGraphTenant",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Microsoft Graph Tenant",
-                "defaultValue": "",
-                "toolTip": "Enter the tenant Id to query users from.",
-                "constraints": {
-                    "required": true,
-                    "regex": "^[{]?[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}[}]?$",
-                    "validationMessage": "The supplied value is not a valid Tenant ID."
-                },
-                "visible": true
-            },
-            {
-                "name": "SendgridAccountName",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Sendgrid Account Name",
-                "defaultValue": "sendgrid",
-                "toolTip": "Enter the name of the SendGrid account to use to send emails.",
-                "constraints": {
-                    "required": true,
-                    "regex": "",
-                    "validationMessage": ""
-                },
-                "visible": true
-            },
-            {
-                "name": "SendgridApiKey",
-                "type": "Microsoft.Common.PasswordBox",
-                "label": {
-                    "password": "Sendgrid Api Key",
-                    "confirmPassword": "Confirm password"
-                },
-                "toolTip": "Enter the SendGrid API key for the above account.",
-                "constraints": {
-                    "required": true,
-                    "regex": "",
-                    "validationMessage": ""
-                },
-                "options": {
-                    "hideConfirmation": true
-                },
-                "visible": true
-            },
-            {
-                "name": "RecurrenceFrequency",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Recurrence Frequency",
-                "defaultValue": "Day",
-                "toolTip": "",
-                "constraints": {
-                    "required": true,
-                    "regex": "",
-                    "validationMessage": ""
-                },
-                "visible": true
-            },
-            {
-                "name": "RecurrenceInterval",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Recurrence Interval",
-                "defaultValue": "1",
-                "toolTip": "",
-                "constraints": {
-                    "required": true,
-                    "regex": "",
-                    "validationMessage": ""
-                },
-                "visible": true
-            },
-            {
-                "name": "RecurrenceSchedule",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Recurrence Schedule",
-                "defaultValue": "{\"hours\":[\"8\"],\"minutes\":[0]}",
-                "toolTip": "",
-                "constraints": {
-                    "required": true,
-                    "regex": "",
-                    "validationMessage": ""
-                },
-                "visible": true
-            }
-        ],
-        "steps": [],
+    "$schema": "http://schema.management.azure.com/schemas/2021-09-09/uiFormDefinition.schema.json#",
+    "view": {
+        "kind": "Form",
+        "properties": {
+            "title": "Deploy AADPasswordExpiryNotifier",
+            "steps": [
+                {
+                    "name": "basics",
+                    "label": "Basics",
+                    "elements": [
+                        {
+                            "name": "logicAppName",
+                            "type": "Microsoft.Common.TextBox",
+                            "label": "Logic App Name",
+                            "defaultValue": "AADPasswordExpiryNotifier",
+                            "toolTip": "The name to use for the Logic App. A second LogicApp will be created (appended with '_Trigger') for the trigger.",
+                            "constraints": {
+                                "required": true,
+                                "regex": "",
+                                "validationMessage": ""
+                            },
+                            "visible": true
+                        },
+                        {
+                            "name": "MicrosoftGraphClientId",
+                            "type": "Microsoft.Common.TextBox",
+                            "label": "Microsoft Graph Client Id",
+                            "defaultValue": "",
+                            "toolTip": "Enter the client Id for the application with read access to Microsoft Graph API.",
+                            "constraints": {
+                                "required": true,
+                                "regex": "",
+                                "validationMessage": ""
+                            },
+                            "visible": true
+                        },
+                        {
+                            "name": "MicrosoftGraphSecret",
+                            "type": "Microsoft.Common.TextBox",
+                            "label": "Microsoft Graph Secret",
+                            "defaultValue": "",
+                            "toolTip": "Enter the secret for the application with read access to Microsoft Graph API.",
+                            "constraints": {
+                                "required": true,
+                                "regex": "",
+                                "validationMessage": ""
+                            },
+                            "visible": true
+                        },
+                        {
+                            "name": "MicrosoftGraphTenant",
+                            "type": "Microsoft.Common.TextBox",
+                            "label": "Microsoft Graph Tenant",
+                            "defaultValue": "",
+                            "toolTip": "Enter the tenant Id to query users from.",
+                            "constraints": {
+                                "required": true,
+                                "regex": "^[{]?[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}[}]?$",
+                                "validationMessage": "The supplied value is not a valid Tenant ID."
+                            },
+                            "visible": true
+                        },
+                        {
+                            "name": "SendgridAccountName",
+                            "type": "Microsoft.Common.TextBox",
+                            "label": "Sendgrid Account Name",
+                            "defaultValue": "sendgrid",
+                            "toolTip": "Enter the name of the SendGrid account to use to send emails.",
+                            "constraints": {
+                                "required": true,
+                                "regex": "",
+                                "validationMessage": ""
+                            },
+                            "visible": true
+                        },
+                        {
+                            "name": "SendgridApiKey",
+                            "type": "Microsoft.Common.PasswordBox",
+                            "label": {
+                                "password": "Sendgrid Api Key",
+                                "confirmPassword": "Confirm password"
+                            },
+                            "toolTip": "Enter the SendGrid API key for the above account.",
+                            "constraints": {
+                                "required": true,
+                                "regex": "",
+                                "validationMessage": ""
+                            },
+                            "options": {
+                                "hideConfirmation": true
+                            },
+                            "visible": true
+                        },
+                        {
+                            "name": "RecurrenceFrequency",
+                            "type": "Microsoft.Common.TextBox",
+                            "label": "Recurrence Frequency",
+                            "defaultValue": "Day",
+                            "toolTip": "",
+                            "constraints": {
+                                "required": true,
+                                "regex": "",
+                                "validationMessage": ""
+                            },
+                            "visible": true
+                        },
+                        {
+                            "name": "RecurrenceInterval",
+                            "type": "Microsoft.Common.TextBox",
+                            "label": "Recurrence Interval",
+                            "defaultValue": "1",
+                            "toolTip": "",
+                            "constraints": {
+                                "required": true,
+                                "regex": "",
+                                "validationMessage": ""
+                            },
+                            "visible": true
+                        },
+                        {
+                            "name": "RecurrenceSchedule",
+                            "type": "Microsoft.Common.TextBox",
+                            "label": "Recurrence Schedule",
+                            "defaultValue": "{\"hours\":[\"8\"],\"minutes\":[0]}",
+                            "toolTip": "",
+                            "constraints": {
+                                "required": true,
+                                "regex": "",
+                                "validationMessage": ""
+                            },
+                            "visible": true
+                        }
+                    ]
+                }
+            ]
+        },
         "outputs": {
             "logicAppName": "[basics('logicAppName')]",
             "MicrosoftGraphClientId": "[basics('MicrosoftGraphClientId')]",
