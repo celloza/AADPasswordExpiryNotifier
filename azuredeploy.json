@@ -1,0 +1,992 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "logicAppName": {
+      "type": "string",
+      "defaultValue": "AADPasswordExpiryNotifier",
+      "metadata": {
+        "description": "Azure Logic App that identifies when Azure AD User Accounts' passwords are set to expire. In some cases, users may have multiple user accounts in different Azure AD tenants. These accounts may be different than what they use to login to their machines locally for example, and as such won't be notified about pending password expiry. Without using SSPR (which requires certain licensing, and involves extra costs) this solution notifies the user about their pending password reset via email (through SendGrid, O365, or whatever)."
+      }
+    },
+    "MicrosoftGraphClientId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Enter the client Id for the application with read access to Microsoft Graph API."
+      }
+    },
+    "MicrosoftGraphSecret": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Enter the secret for the application with read access to Microsoft Graph API."
+      }
+    },
+    "MicrosoftGraphTenant": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Enter the tenant Id to query users from."
+      }
+    },
+    "SendgridAccountName": {
+      "type": "string",
+      "defaultValue": "sendgrid",
+      "metadata": {
+        "description": "Enter the name of the SendGrid account to use to send emails."
+      }
+    },
+    "SendgridApiKey": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Enter the SendGrid API key for the above account."
+      }
+    },
+    "RecurrenceFrequency": {
+      "type": "string",
+      "defaultValue": "Day"
+    },
+    "RecurrenceInterval": {
+      "type": "int",
+      "defaultValue": 1
+    },
+    "RecurrenceSchedule": {
+      "type": "Object",
+      "defaultValue": {
+        "hours": [
+          "8"
+        ],
+        "minutes": [
+          0
+        ]
+      }
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "type": "Microsoft.Logic/workflows",
+      "apiVersion": "2019-05-01",
+      "name": "[parameters('logicAppName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/connections', parameters('SendgridAccountName'))]"
+      ],
+      "properties": {
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "$connections": {
+              "defaultValue": {},
+              "type": "Object"
+            }
+          },
+          "triggers": {
+            "manual": {
+              "type": "Request",
+              "kind": "Http",
+              "inputs": {
+                "schema": {
+                  "properties": {
+                    "DaysToExpiryFromLastSet": {
+                      "type": "integer"
+                    },
+                    "FirstWarningDays": {
+                      "type": "integer"
+                    },
+                    "SecondWarningDays": {
+                      "type": "integer"
+                    },
+                    "ThirdWarningDays": {
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "actions": {
+            "Check expiry": {
+              "foreach": "@body('Parse_JSON')?['value']",
+              "actions": {
+                "Calculate_days_to_expiry": {
+                  "runAfter": {
+                    "Calculate_expiry_date": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "CurrentUserDaysToExpiry",
+                    "value": "@div(sub(ticks(variables('CurrentUserExpiryDate')),ticks(utcNow())),864000000000)"
+                  }
+                },
+                "Calculate_expiry_date": {
+                  "runAfter": {
+                    "Store_CurrentUserPrincipalName": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "CurrentUserExpiryDate",
+                    "value": "@{addDays(items('Check expiry')?['lastPasswordChangeDateTime'],variables('PasswordsExpireInDays'))}"
+                  }
+                },
+                "Check_if_already_expired": {
+                  "actions": {
+                    "Ignore_user,_already_expired": {
+                      "runAfter": {},
+                      "type": "AppendToArrayVariable",
+                      "inputs": {
+                        "name": "DebugOutput",
+                        "value": "Ignore @{items('Check expiry')?['userPrincipalName']}, as their password has already expired (@{variables('CurrentUserDaysToExpiry')} ago)."
+                      }
+                    }
+                  },
+                  "runAfter": {
+                    "Calculate_days_to_expiry": [
+                      "Succeeded"
+                    ]
+                  },
+                  "else": {
+                    "actions": {
+                      "More_than_FirstWarningDays_remaining": {
+                        "actions": {
+                          "Ignore,_not_within_range": {
+                            "runAfter": {},
+                            "type": "AppendToArrayVariable",
+                            "inputs": {
+                              "name": "DebugOutput",
+                              "value": "Ignore @{items('Check expiry')?['userPrincipalName']}, as their password only expires in @{variables('CurrentUserDaysToExpiry')} days."
+                            }
+                          }
+                        },
+                        "runAfter": {},
+                        "else": {
+                          "actions": {
+                            "Between_FirstWarningDays_and_SecondWarningDays": {
+                              "actions": {
+                                "Add_First_Warning_Email_Action": {
+                                  "runAfter": {
+                                    "Compose_First_Warning_Email_Action": [
+                                      "Succeeded"
+                                    ]
+                                  },
+                                  "type": "AppendToArrayVariable",
+                                  "inputs": {
+                                    "name": "EmailsToSend",
+                                    "value": "@outputs('Compose_First_Warning_Email_Action')"
+                                  }
+                                },
+                                "Append_to_array_variable": {
+                                  "runAfter": {},
+                                  "type": "AppendToArrayVariable",
+                                  "inputs": {
+                                    "name": "DebugOutput",
+                                    "value": "Send first warning email to @{items('Check expiry')?['userPrincipalName']}, as their password expires in @{variables('CurrentUserDaysToExpiry')} days."
+                                  }
+                                },
+                                "Compose_First_Warning_Email_Action": {
+                                  "runAfter": {
+                                    "Append_to_array_variable": [
+                                      "Succeeded"
+                                    ]
+                                  },
+                                  "type": "Compose",
+                                  "inputs": {
+                                    "emailAction": {
+                                      "expiringInDays": "@variables('CurrentUserDaysToExpiry')",
+                                      "expiryDate": "@variables('CurrentUserExpiryDate')",
+                                      "name": "@{variables('CurrentUserDisplayName')}",
+                                      "recipient": "@{variables('CurrentUserEmailAddress')}",
+                                      "username": "@{variables('CurrentUserPrincipalName')}",
+                                      "warningType": "First"
+                                    }
+                                  }
+                                }
+                              },
+                              "runAfter": {},
+                              "else": {
+                                "actions": {
+                                  "Between_SecondWarningDays_and_ThirdWarningDays": {
+                                    "actions": {
+                                      "Add_Second_Warning_Email_Action": {
+                                        "runAfter": {
+                                          "Compose_Second_Warning_Email_Action": [
+                                            "Succeeded"
+                                          ]
+                                        },
+                                        "type": "AppendToArrayVariable",
+                                        "inputs": {
+                                          "name": "EmailsToSend",
+                                          "value": "@outputs('Compose_Second_Warning_Email_Action')"
+                                        }
+                                      },
+                                      "Append_to_array_variable_2": {
+                                        "runAfter": {},
+                                        "type": "AppendToArrayVariable",
+                                        "inputs": {
+                                          "name": "DebugOutput",
+                                          "value": "Send second email to @{items('Check expiry')?['userPrincipalName']}, as their password expires in @{variables('CurrentUserDaysToExpiry')} days."
+                                        }
+                                      },
+                                      "Compose_Second_Warning_Email_Action": {
+                                        "runAfter": {
+                                          "Append_to_array_variable_2": [
+                                            "Succeeded"
+                                          ]
+                                        },
+                                        "type": "Compose",
+                                        "inputs": {
+                                          "emailAction": {
+                                            "expiringInDays": "@variables('CurrentUserDaysToExpiry')",
+                                            "expiryDate": "@variables('CurrentUserExpiryDate')",
+                                            "name": "@{variables('CurrentUserDisplayName')}",
+                                            "recipient": "@{variables('CurrentUserEmailAddress')}",
+                                            "username": "@{variables('CurrentUserPrincipalName')}",
+                                            "warningType": "First"
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "runAfter": {},
+                                    "else": {
+                                      "actions": {
+                                        "Less_than_ThirdWarningDays": {
+                                          "actions": {
+                                            "Add_Third_Warning_Email_Action": {
+                                              "runAfter": {
+                                                "Compose_Third_Warning_Email_Action": [
+                                                  "Succeeded"
+                                                ]
+                                              },
+                                              "type": "AppendToArrayVariable",
+                                              "inputs": {
+                                                "name": "EmailsToSend",
+                                                "value": "@outputs('Compose_Third_Warning_Email_Action')"
+                                              }
+                                            },
+                                            "Append_to_array_variable_3": {
+                                              "runAfter": {},
+                                              "type": "AppendToArrayVariable",
+                                              "inputs": {
+                                                "name": "DebugOutput",
+                                                "value": "Send third warning email to @{items('Check expiry')?['userPrincipalName']}, as their password expires in @{variables('CurrentUserDaysToExpiry')} days."
+                                              }
+                                            },
+                                            "Compose_Third_Warning_Email_Action": {
+                                              "runAfter": {
+                                                "Append_to_array_variable_3": [
+                                                  "Succeeded"
+                                                ]
+                                              },
+                                              "type": "Compose",
+                                              "inputs": {
+                                                "emailAction": {
+                                                  "expiringInDays": "@variables('CurrentUserDaysToExpiry')",
+                                                  "expiryDate": "@variables('CurrentUserExpiryDate')",
+                                                  "name": "@{variables('CurrentUserDisplayName')}",
+                                                  "recipient": "@{variables('CurrentUserEmailAddress')}",
+                                                  "username": "@{variables('CurrentUserPrincipalName')}",
+                                                  "warningType": "First"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "runAfter": {},
+                                          "expression": {
+                                            "and": [
+                                              {
+                                                "equals": [
+                                                  "@variables('CurrentUserDaysToExpiry')",
+                                                  "@variables('ThirdWarningDays')"
+                                                ]
+                                              }
+                                            ]
+                                          },
+                                          "type": "If"
+                                        }
+                                      }
+                                    },
+                                    "expression": {
+                                      "and": [
+                                        {
+                                          "equals": [
+                                            "@variables('CurrentUserDaysToExpiry')",
+                                            "@variables('SecondWarningDays')"
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    "type": "If"
+                                  }
+                                }
+                              },
+                              "expression": {
+                                "and": [
+                                  {
+                                    "equals": [
+                                      "@variables('CurrentUserDaysToExpiry')",
+                                      "@variables('FirstWarningDays')"
+                                    ]
+                                  }
+                                ]
+                              },
+                              "type": "If"
+                            }
+                          }
+                        },
+                        "expression": {
+                          "and": [
+                            {
+                              "equals": [
+                                "@variables('CurrentUserDaysToExpiry')",
+                                "@variables('FirstWarningDays')"
+                              ]
+                            }
+                          ]
+                        },
+                        "type": "If"
+                      }
+                    }
+                  },
+                  "expression": {
+                    "and": [
+                      {
+                        "less": [
+                          "@variables('CurrentUserExpiryDate')",
+                          "@utcNow()"
+                        ]
+                      }
+                    ]
+                  },
+                  "type": "If"
+                },
+                "Store_CurrentUserDisplayName": {
+                  "runAfter": {},
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "CurrentUserDisplayName",
+                    "value": "@items('Check expiry')?['displayName']"
+                  }
+                },
+                "Store_CurrentUserEmailAddress": {
+                  "runAfter": {
+                    "Store_CurrentUserDisplayName": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "CurrentUserEmailAddress",
+                    "value": "@items('Check expiry')?['mail']"
+                  }
+                },
+                "Store_CurrentUserPrincipalName": {
+                  "runAfter": {
+                    "Store_CurrentUserEmailAddress": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "CurrentUserPrincipalName",
+                    "value": "@items('Check expiry')?['userPrincipalName']"
+                  }
+                }
+              },
+              "runAfter": {
+                "Parse_JSON": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Foreach",
+              "runtimeConfiguration": {
+                "concurrency": {
+                  "repetitions": 1
+                }
+              }
+            },
+            "Get_All_Users_from_Microsoft_Graph": {
+              "runAfter": {
+                "Initialize_DebugOutput": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Http",
+              "inputs": {
+                "authentication": {
+                  "audience": "https://graph.microsoft.com",
+                  "authority": "https://login.microsoft.com",
+                  "clientId": "[parameters('MicrosoftGraphClientId')]",
+                  "secret": "[parameters('MicrosoftGraphSecret')]",
+                  "tenant": "[parameters('MicrosoftGraphTenant')]",
+                  "type": "ActiveDirectoryOAuth"
+                },
+                "method": "GET",
+                "uri": "https://graph.microsoft.com/v1.0/users/?$select=userprincipalname,displayname,mail,lastpasswordchangedatetime"
+              }
+            },
+            "Initialize_ApplicationId": {
+              "runAfter": {
+                "Initialize_DirectoryId": [
+                  "Succeeded"
+                ]
+              },
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "application_id",
+                    "type": "string",
+                    "value": "d979f243-b9e1-4414-8963-d40b0bc7c315"
+                  }
+                ]
+              }
+            },
+            "Initialize_CurrentUserDaysToExpiry": {
+              "runAfter": {
+                "Initialize_CurrentUserExpiryDate": [
+                  "Succeeded"
+                ]
+              },
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "CurrentUserDaysToExpiry",
+                    "type": "float"
+                  }
+                ]
+              }
+            },
+            "Initialize_CurrentUserDisplayName": {
+              "runAfter": {
+                "Initialize_CurrentUserEmailAddress": [
+                  "Succeeded"
+                ]
+              },
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "CurrentUserDisplayName",
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "Initialize_CurrentUserEmailAddress": {
+              "runAfter": {
+                "Initialize_CurrentUserDaysToExpiry": [
+                  "Succeeded"
+                ]
+              },
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "CurrentUserEmailAddress",
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "Initialize_CurrentUserExpiryDate": {
+              "runAfter": {
+                "Initialize_CurrentUserLastPasswordChangeDate": [
+                  "Succeeded"
+                ]
+              },
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "CurrentUserExpiryDate",
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "Initialize_CurrentUserLastPasswordChangeDate": {
+              "runAfter": {
+                "Initialize_secret": [
+                  "Succeeded"
+                ]
+              },
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "CurrentUserLastPasswordChangeDate",
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "Initialize_CurrentUserPrincipalName": {
+              "runAfter": {
+                "Initialize_CurrentUserDisplayName": [
+                  "Succeeded"
+                ]
+              },
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "CurrentUserPrincipalName",
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "Initialize_DebugOutput": {
+              "runAfter": {
+                "Initialize_EmailsToSend": [
+                  "Succeeded"
+                ]
+              },
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "DebugOutput",
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "Initialize_DirectoryId": {
+              "runAfter": {
+                "Initialize_PasswordsExpireInDays": [
+                  "Succeeded"
+                ]
+              },
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "directory_id",
+                    "type": "string",
+                    "value": "f8519c47-3571-471a-938d-22220ef638c0"
+                  }
+                ]
+              }
+            },
+            "Initialize_EmailsToSend": {
+              "runAfter": {
+                "Initialize_CurrentUserPrincipalName": [
+                  "Succeeded"
+                ]
+              },
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "EmailsToSend",
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "Initialize_FirstWarningDays": {
+              "runAfter": {},
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "FirstWarningDays",
+                    "type": "integer",
+                    "value": "@triggerBody()?['FirstWarningDays']"
+                  }
+                ]
+              }
+            },
+            "Initialize_PasswordsExpireInDays": {
+              "runAfter": {
+                "Initialize_variable": [
+                  "Succeeded"
+                ]
+              },
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "PasswordsExpireInDays",
+                    "type": "integer",
+                    "value": "@triggerBody()?['DaysToExpiryFromLastSet']"
+                  }
+                ]
+              }
+            },
+            "Initialize_secret": {
+              "runAfter": {
+                "Initialize_ApplicationId": [
+                  "Succeeded"
+                ]
+              },
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "secret",
+                    "type": "string",
+                    "value": "8B97Q~w5rz50iCWhdjAT8vqXEB_29Spdpox1j"
+                  }
+                ]
+              }
+            },
+            "Initialize_variable": {
+              "runAfter": {
+                "SecondWarningDays": [
+                  "Succeeded"
+                ]
+              },
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "ThirdWarningDays",
+                    "type": "integer",
+                    "value": "@triggerBody()?['ThirdWarningDays']"
+                  }
+                ]
+              }
+            },
+            "Loop_through_emails_to_send": {
+              "foreach": "@body('Parse_EmailsToSend')",
+              "actions": {
+                "Check_if_email_is_not_null": {
+                  "actions": {
+                    "Append_to_array_variable_5": {
+                      "runAfter": {},
+                      "type": "AppendToArrayVariable",
+                      "inputs": {
+                        "name": "DebugOutput",
+                        "value": "Sent email to @{variables('CurrentUserDisplayName')} at @{variables('CurrentUserEmailAddress')}."
+                      }
+                    },
+                    "Send_email_(V4)": {
+                      "runAfter": {
+                        "Append_to_array_variable_5": [
+                          "Succeeded"
+                        ]
+                      },
+                      "type": "ApiConnection",
+                      "inputs": {
+                        "body": {
+                          "from": "onboarding@hayne.cloud",
+                          "ishtml": true,
+                          "subject": "Your walstead.hayne.cloud password is expiring soon",
+                          "text": "<p>Hi @{variables('CurrentUserDisplayName')}<br>\n<br>\nPlease note that your user account, @{variables('CurrentUserPrincipalName')}, is expiring in @{variables('CurrentUserDaysToExpiry')} day(s). If you do not change your password in time, you may receive an error when trying to log in.<br>\n<br>\nTo change your password, follow these steps:<br>\n<br>\n1. Click <a href=\"https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=8c59ead7-d703-4a27-9e55-c96a0054c8d2&amp;redirect_uri=https%3A%2F%2Fmyaccount.microsoft.com&amp;scope=openid+profile+email+offline_access&amp;prompt=login\">this link</a><br>\n2. Login using the username @{variables('CurrentUserPrincipalName')}, and provide your current password.<br>\n3. Click the Change your Password button<br>\n4. Follow the steps to change your password.<br>\n<br>\nFor any further assistance, please log a request with Hayne Assist.<br>\n<br>\nRegards,<br>\n<br>\nThe Hayne Operations Team<br>\n</p>",
+                          "to": "@variables('CurrentUserEmailAddress')"
+                        },
+                        "host": {
+                          "connection": {
+                            "name": "@parameters('$connections')['sendgrid']['connectionId']"
+                          }
+                        },
+                        "method": "post",
+                        "path": "/v4/mail/send"
+                      }
+                    }
+                  },
+                  "runAfter": {
+                    "Store_user_principal_name_for_email": [
+                      "Succeeded"
+                    ]
+                  },
+                  "else": {
+                    "actions": {
+                      "Append_to_array_variable_4": {
+                        "runAfter": {},
+                        "type": "AppendToArrayVariable",
+                        "inputs": {
+                          "name": "DebugOutput",
+                          "value": "Could not send email to @{variables('CurrentUserDisplayName')} since the email address is not set."
+                        }
+                      }
+                    }
+                  },
+                  "expression": {
+                    "and": [
+                      {
+                        "greater": [
+                          "@concat('', variables('CurrentUserEmailAddress'))",
+                          " "
+                        ]
+                      }
+                    ]
+                  },
+                  "type": "If"
+                },
+                "Store_days_to_expiry_for_email": {
+                  "runAfter": {
+                    "Store_email_address_for_email": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "CurrentUserDaysToExpiry",
+                    "value": "@items('Loop_through_emails_to_send')?['emailAction']?['expiringInDays']"
+                  }
+                },
+                "Store_display_name_for_email": {
+                  "runAfter": {},
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "CurrentUserDisplayName",
+                    "value": "@items('Loop_through_emails_to_send')?['emailAction']?['name']"
+                  }
+                },
+                "Store_email_address_for_email": {
+                  "runAfter": {
+                    "Store_display_name_for_email": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "CurrentUserEmailAddress",
+                    "value": "@items('Loop_through_emails_to_send')?['emailAction']?['recipient']"
+                  }
+                },
+                "Store_user_principal_name_for_email": {
+                  "runAfter": {
+                    "Store_days_to_expiry_for_email": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "CurrentUserPrincipalName",
+                    "value": "@items('Loop_through_emails_to_send')?['emailAction']?['username']"
+                  }
+                }
+              },
+              "runAfter": {
+                "Parse_EmailsToSend": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Foreach",
+              "runtimeConfiguration": {
+                "concurrency": {
+                  "repetitions": 1
+                }
+              }
+            },
+            "Parse_EmailsToSend": {
+              "runAfter": {
+                "Check expiry": [
+                  "Succeeded"
+                ]
+              },
+              "type": "ParseJson",
+              "inputs": {
+                "content": "@variables('EmailsToSend')",
+                "schema": {
+                  "items": {
+                    "properties": {
+                      "emailAction": {
+                        "properties": {
+                          "expiringInDays": {
+                            "type": "integer"
+                          },
+                          "expiryDate": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "recipient": {
+                            "type": "string"
+                          },
+                          "username": {
+                            "type": "string"
+                          },
+                          "warningType": {
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "required": [
+                      "emailAction"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "Parse_JSON": {
+              "runAfter": {
+                "Get_All_Users_from_Microsoft_Graph": [
+                  "Succeeded"
+                ]
+              },
+              "type": "ParseJson",
+              "inputs": {
+                "content": "@body('Get_All_Users_from_Microsoft_Graph')",
+                "schema": {
+                  "properties": {
+                    "@@odata.context": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "items": {
+                        "properties": {
+                          "displayName": {
+                            "type": "string"
+                          },
+                          "lastPasswordChangeDateTime": {
+                            "type": "string"
+                          },
+                          "mail": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "userPrincipalName": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "displayName",
+                          "mail",
+                          "lastPasswordChangeDateTime",
+                          "userPrincipalName"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "Response": {
+              "runAfter": {
+                "Loop_through_emails_to_send": [
+                  "Succeeded"
+                ]
+              },
+              "type": "Response",
+              "kind": "Http",
+              "inputs": {
+                "body": "@variables('DebugOutput')",
+                "statusCode": 200
+              },
+              "operationOptions": "Asynchronous"
+            },
+            "SecondWarningDays": {
+              "runAfter": {
+                "Initialize_FirstWarningDays": [
+                  "Succeeded"
+                ]
+              },
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "SecondWarningDays",
+                    "type": "integer",
+                    "value": "@triggerBody()?['SecondWarningDays']"
+                  }
+                ]
+              }
+            }
+          },
+          "outputs": {}
+        },
+        "parameters": {
+          "$connections": {
+            "value": {
+              "sendgrid": {
+                "id": "[concat('/subscriptions/',subscription().subscriptionId,'/providers/Microsoft.Web/locations/',resourceGroup().location,'/managedApis/sendgrid')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('SendgridAccountName'))]",
+                "connectionName": "[parameters('SendgridAccountName')]"
+              }
+            }
+          }
+        }
+      },
+      "tags": { },
+      "identity": {
+        "type": "SystemAssigned"
+      }
+    },
+    {
+      "type": "Microsoft.Web/connections",
+      "apiVersion": "2016-06-01",
+      "location": "[resourceGroup().location]",
+      "name": "[parameters('SendgridAccountName')]",
+      "properties": {
+        "api": {
+          "id": "[concat('/subscriptions/',subscription().subscriptionId,'/providers/Microsoft.Web/locations/',resourceGroup().location,'/managedApis/sendgrid')]"
+        },
+        "parameterValues": {
+          "apiKey": "[parameters('SendgridApiKey')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Logic/workflows",
+      "apiVersion": "2019-05-01",
+      "name": "[concat(parameters('logicAppName'), '_Trigger')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [],
+      "properties": {
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {},
+          "triggers": {
+            "Recurrence": {
+              "recurrence": {
+                "frequency": "[parameters('RecurrenceFrequency')]",
+                "interval": "[parameters('RecurrenceInterval')]",
+                "schedule": "[parameters('RecurrenceSchedule')]"
+              },
+              "type": "Recurrence"
+            }
+          },
+          "actions": {
+            "AADPasswordExpiryNotifier": {
+              "runAfter": {},
+              "type": "Workflow",
+              "inputs": {
+                "body": {
+                  "DaysToExpiryFromLastSet": 90,
+                  "FirstWarningDays": 14,
+                  "SecondWarningDays": 7,
+                  "ThirdWarningDays": 1
+                },
+                "host": {
+                  "triggerName": "manual",
+                  "workflow": {
+                    "id": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().location,'/providers/Microsoft.Logic/workflows/',parameters('logicAppName'))]"
+                  }
+                }
+              }
+            }
+          },
+          "outputs": {}
+        },
+        "parameters": {}
+      },
+      "tags": { }
+    }
+  ],
+  "outputs": {}
+}
