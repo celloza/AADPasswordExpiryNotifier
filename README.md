@@ -1,5 +1,5 @@
 # AADPasswordExpiryNotifier
-Azure Logic App that identifies when Azure AD User Accounts' passwords are set to expire.
+Azure Logic App that identifies when Azure AD User Accounts' passwords are set to expire, and notifies them via email.
 
 In some cases, users may have multiple user accounts in different Azure AD tenants. These accounts may be different than what they use to login to their machines locally for example, and as such won't be notified about pending password expiry.
 
