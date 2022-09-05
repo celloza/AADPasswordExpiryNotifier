@@ -10,7 +10,8 @@ Without using SSPR (which requires certain licensing, and involves extra costs) 
 ### Create a Logic App
 
 Create a Logic App in the target subscription by clicking the Add button on the Logic Apps Service in the Azure Portal:
- 
+
+![image](https://user-images.githubusercontent.com/3426823/188476849-1a844888-5ec3-4a63-86ea-99eacaa903fd.png)
 <p align="center">Figure 1: Creating a Logic App</p>
 
 When configuring the Logic App, set the following parameters:
@@ -37,7 +38,8 @@ To create a System Assigned Managed Identify, perform the following steps:
 - Open the Logic App you created in Create a Logic App
 - Navigate to Identity under Settings
 - Enable the System assigned managed identity by setting Status to On, and saving the changes:
- 
+
+![image](https://user-images.githubusercontent.com/3426823/188477036-0003ac0e-6509-4eca-b8dc-10bcbbbe1f90.png)
 <p align="center">Figure 2: Enabling the System Assigned Managed Identity</p>
 
 ### Assign permissions
@@ -51,6 +53,7 @@ Once created, navigate to the App’s API permissions, and add the following per
 - People.Read.All
 - User.Read.All
  
+![image](https://user-images.githubusercontent.com/3426823/188477336-ea1100cf-83f5-4265-ab74-15803c05f228.png)
 <p align="center">Figure 3: API permissions required</p>
 
 > Applying the principle of least priviledge has not yet been tested for this solution. It may function without granting some of these permissions
@@ -63,13 +66,16 @@ After creating it, take note of the value: this will be used in the Logic App’
 
 ## Deploy the solution
 Logic Apps can be designed using the Logic app designer in Azure Portal. This designer generates the necessary code, which is viewable in the Logic app code view:
- 
+
+![image](https://user-images.githubusercontent.com/3426823/188477464-417e41a2-4678-48f5-bc97-967c3e9b967c.png)
+
 The easiest way to deploy this solution, is by simply copying and pasting the source code into the Logic app code view editor:
 - Navigate to the Logic App’s code view
 - Copy the source code from AADPasswordExpiryNotifier-LogicApp.json, and paste it into the editor
 - Save the changes
 - Navigate to the designer to confirm it looks as follows, and no errors are being presented:
- 
+
+![image](https://user-images.githubusercontent.com/3426823/188477554-2db591c4-c45b-4bdb-9dd1-3d6d95578fbb.png)
 <p align="center">Figure 4: The Logic App designer view</p>
 
 ### Setting the DirectoryId, ApplicationId and Secret variables
@@ -79,6 +85,7 @@ In the Logic App designer, configure the options for *Initialize DirectoryId*, *
 
 By default, the AAD Password Expiry Notifier sends emails via a [SendGrid API](https://sendgrid.com/). Once the Logic App has been created, and the source code saved, you will need to configure this step in the Logic App:
  
+![image](https://user-images.githubusercontent.com/3426823/188477697-14089442-1b87-41ef-8e31-a94d6e0d48e4.png)
 <p align="center">Figure 5: The SendGrid email sending step</p>
 
 This step also contains the contents of the email that will be received by the user. Configure it as required.
@@ -117,12 +124,17 @@ The simplest way to trigger the solution is via another Logic App. By following 
 > Note that using a second Logic App will effectively double the amount of executions, which may be billable dependent on your subscription. However, since the solution is intended to run once daily, this will result in a maximum number of *60* billable executions in a month
 
 This will create a Logic App that triggers automatically based on a schedule, and then calls the AAD Password Expiry Notifier. The schedule can be configured to run as per requirement, and because of the tight integration between Logic Apps, even allow the configuration options to be configured via the front-end:
- 
+
+![image](https://user-images.githubusercontent.com/3426823/188478072-d3c7a6fe-5d00-4d6b-b389-35de1fe61009.png)
 <p align="center">Figure 6: Setting configuration options via the designer.</p>
 
 Configure the options as required, and Save the Logic App.
 
-> The AAD Password Expiry Notifier Logic App makes use of asynchronous HTTP calls. Once you’ve created the Trigger app, ensure that the call to the main Logic App is set to use the Asynchronous Pattern by checking the step’s Settings
+> The AAD Password Expiry Notifier Logic App makes use of asynchronous HTTP calls. Once you’ve created the Trigger app, ensure that the call to the main Logic App is set to use the Asynchronous Pattern by checking the step’s Settings:
+> ![image](https://user-images.githubusercontent.com/3426823/188478174-b6cefef8-5c3a-4d59-8b55-2c61e22f8f97.png)
+> 
+> If this setting is not enabled, you may encounter timeout exceptions in the Logic App’s run history.
+
  
 ### Triggering via custom HTTP request
 Since the Logic App exposes an HTTP endpoint, it can be invoked from a custom client, such as an Azure Function, PowerShell, PowerApps, or custom code.
@@ -152,11 +164,13 @@ b.	Send an email to the user
 # Using the solution
 Basic monitoring and administration of the solution involves checking the Run History of both the AAD Password Expiry Notifier Logic App, and if so configured, the Trigger app. 
 By checking the Overview tab on the Logic Apps, success and failures in runs can be idenfitied:
- 
+
+![image](https://user-images.githubusercontent.com/3426823/188478537-0fe00e2e-356d-493f-bc9a-19159792980b.png)
 <p align="center">Figure 7: Viewing the Logic App's run history</p>
 
 Opening a specific run shows the steps performed, and whether the steps passed or failed:
  
+![image](https://user-images.githubusercontent.com/3426823/188478662-fdf003a2-e422-4e76-99d3-32d9155e2a03.png)
 <p align="center">Figure 8: Viewing specific steps' success or failure</p>
 
 The Response body of the HTTP request will contain a debug log of the actions taken/not taken. To view these, open the Response step (as shown in Figure 7). It will contain readable text (an array of strings), resembling the following:
