@@ -135,7 +135,7 @@
                 "type": "Microsoft.Common.TextBox",
                 "label": "Recurrence Frequency",
                 "defaultValue": "Day",
-                "toolTip": "",
+                "toolTip": "Refrain from editing these values here. You can edit the schedule using the GUI after creation.",
                 "constraints": {
                     "required": true,
                     "regex": "",
@@ -148,7 +148,7 @@
                 "type": "Microsoft.Common.TextBox",
                 "label": "Recurrence Interval",
                 "defaultValue": "1",
-                "toolTip": "",
+                "toolTip": "Refrain from editing these values here. You can edit the schedule using the GUI after creation.",
                 "constraints": {
                     "required": true,
                     "regex": "",
@@ -161,7 +161,7 @@
                 "type": "Microsoft.Common.TextBox",
                 "label": "Recurrence Schedule",
                 "defaultValue": "{\"hours\":[\"8\"],\"minutes\":[0]}",
-                "toolTip": "",
+                "toolTip": "Refrain from editing these values here. You can edit the schedule using the GUI after creation.",
                 "constraints": {
                     "required": true,
                     "regex": "",
