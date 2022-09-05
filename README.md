@@ -7,7 +7,7 @@ Without using SSPR (which requires certain licensing, and involves extra costs) 
 
 ## Deploying the solution
 
-[![Deploy To Azure](https://docs.microsoft.com/en-us/azure/templates/media/deploy-to-azure.svg)](https://portal.azure.com/#blade/Microsoft_Azure_CreateUIDef/CustomDeploymentBlade/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fgrimstoner%2FAADPasswordExpiryNotifier%2Fmaster%2Fazuredeploy.json/uiFormDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fgrimstoner%2FAADPasswordExpiryNotifier%2Fmaster%2FazuredeployUI.json)
+[![Deploy To Azure](https://docs.microsoft.com/en-us/azure/templates/media/deploy-to-azure.svg)](https://portal.azure.com/#blade/Microsoft_Azure_CreateUIDef/CustomDeploymentBlade/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fgrimstoner%2FAADPasswordExpiryNotifier%2Fmaster%2Fazuredeploy.json)
 
 ### Create a Logic App
 
