@@ -10,7 +10,7 @@ The Logic App performs a number of steps, which can be reduced to the following 
 1.	A request is received via HTTP to run the app
 2.	Extract the configuration parameters provided in the body of the request
 3.	Get all users in the directory (specified in the DirectoryId variable)
-4.	Iterate through all the users, and build a list of actions to be taken:
+4.	Iterate through all the users, and build a list of actions to be taken:<br>
 4.1.	Calculate each user’s password’s expiry date from the date it was last set, and the DaysToExpiryFromLastSet configuration parameter
 4.2.	If this date falls on FirstWarningDays, add an action item to send the First email warning
 4.3.	If this date falls on SecondWarningDays, add an action to send the Second email warning
