@@ -184,14 +184,14 @@
     
         "outputs": {
             "logicAppName": "[basics('logicAppName')]",
-            "MicrosoftGraphClientId": "[config('MicrosoftGraphClientId')]",
-            "MicrosoftGraphSecret": "[config('MicrosoftGraphSecret')]",
-            "MicrosoftGraphTenant": "[config('MicrosoftGraphTenant')]",
-            "SendgridAccountName": "[config('SendgridAccountName')]",
-            "SendgridApiKey": "[config('SendgridApiKey')]",
-            "RecurrenceFrequency": "[trigger('RecurrenceFrequency')]",
-            "RecurrenceInterval": "[trigger('RecurrenceInterval')]",
-            "RecurrenceSchedule": "[trigger('RecurrenceSchedule')]"
+            "MicrosoftGraphClientId": "[steps('config').MicrosoftGraphClientId]",
+            "MicrosoftGraphSecret": "[steps('config').MicrosoftGraphSecret]",
+            "MicrosoftGraphTenant": "[steps('config').MicrosoftGraphTenant]",
+            "SendgridAccountName": "[steps('config').SendgridAccountName]",
+            "SendgridApiKey": "[steps('config').SendgridApiKey]",
+            "RecurrenceFrequency": "[steps('trigger').RecurrenceFrequency]",
+            "RecurrenceInterval": "[steps('trigger').RecurrenceInterval]",
+            "RecurrenceSchedule": "[steps('trigger').RecurrenceSchedule]"
         }
     }
 }
