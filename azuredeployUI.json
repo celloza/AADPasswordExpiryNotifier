@@ -130,7 +130,8 @@
                     "hideConfirmation": true
                 },
                 "visible": true
-            },
+            }],
+        "Trigger": [
             {
                 "name": "RecurrenceFrequency",
                 "type": "Microsoft.Common.TextBox",
@@ -174,14 +175,14 @@
         "steps": [],
         "outputs": {
             "logicAppName": "[basics('logicAppName')]",
-            "MicrosoftGraphClientId": "[basics('MicrosoftGraphClientId')]",
-            "MicrosoftGraphSecret": "[basics('MicrosoftGraphSecret')]",
-            "MicrosoftGraphTenant": "[basics('MicrosoftGraphTenant')]",
-            "SendgridAccountName": "[basics('SendgridAccountName')]",
-            "SendgridApiKey": "[basics('SendgridApiKey')]",
-            "RecurrenceFrequency": "[basics('RecurrenceFrequency')]",
-            "RecurrenceInterval": "[basics('RecurrenceInterval')]",
-            "RecurrenceSchedule": "[basics('RecurrenceSchedule')]"
+            "MicrosoftGraphClientId": "[Configuration('MicrosoftGraphClientId')]",
+            "MicrosoftGraphSecret": "[Configuration('MicrosoftGraphSecret')]",
+            "MicrosoftGraphTenant": "[Configuration('MicrosoftGraphTenant')]",
+            "SendgridAccountName": "[Configuration('SendgridAccountName')]",
+            "SendgridApiKey": "[Configuration('SendgridApiKey')]",
+            "RecurrenceFrequency": "[Trigger('RecurrenceFrequency')]",
+            "RecurrenceInterval": "[Trigger('RecurrenceInterval')]",
+            "RecurrenceSchedule": "[Trigger('RecurrenceSchedule')]"
         }
     }
 }
