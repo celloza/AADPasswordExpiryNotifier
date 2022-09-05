@@ -136,15 +136,24 @@
             ]
         },
         "outputs": {
-            "logicAppName": "[basics('logicAppName')]",
-            "MicrosoftGraphClientId": "[basics('MicrosoftGraphClientId')]",
-            "MicrosoftGraphSecret": "[basics('MicrosoftGraphSecret')]",
-            "MicrosoftGraphTenant": "[basics('MicrosoftGraphTenant')]",
-            "SendgridAccountName": "[basics('SendgridAccountName')]",
-            "SendgridApiKey": "[basics('SendgridApiKey')]",
-            "RecurrenceFrequency": "[basics('RecurrenceFrequency')]",
-            "RecurrenceInterval": "[basics('RecurrenceInterval')]",
-            "RecurrenceSchedule": "[basics('RecurrenceSchedule')]"
+            "parameters": {
+                "location": "[steps('basics').resourceScope.location.name]",
+                "vmName": "[steps('basics').vmName]",
+                "adminUsername": "[steps('basics').adminUsername]",
+                "adminPassword": "[steps('basics').password]",
+                "scriptParameter": "[steps('basics').scriptParameter]",
+                "virtualNetworkName": "[steps('VirtualMachineConfig').vnet.name]",
+                "virtualNetworkNewOrExisting": "[steps('VirtualMachineConfig').vnet.newOrExisting]",
+                "virtualNetworkAddressPrefix": "[first(steps('VirtualMachineConfig').vnet.addressPrefixes)]",
+                "virtualNetworkResourceGroup": "[steps('VirtualMachineConfig').vnet.resourceGroup]",
+                "subnetName": "[steps('VirtualMachineConfig').vnet.subnets.subnet1.name]",
+                "subnetAddressPrefix": "[steps('VirtualMachineConfig').vnet.subnets.subnet1.addressPrefix]",
+                "vmSize": "[steps('VirtualMachineConfig').vmSize]",
+                "OSVersion": "[steps('VirtualMachineConfig').OSVersion]"
+            },
+            "kind": "ResourceGroup",
+            "location": "[steps('basics').resourceScope.location.name]",
+            "resourceGroupId": "[steps('basics').resourceScope.resourceGroup.id]"
         }
     }
 }
