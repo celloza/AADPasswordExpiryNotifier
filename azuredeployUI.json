@@ -8,6 +8,44 @@
             "microsoft.web/connections",
             "microsoft.resources/resourcegroups"
         ],
+        "config": {
+            "isWizard": false,
+            "basics": {
+                "description": "Customized description with **markdown**, see [more](https://www.microsoft.com).",
+                "subscription": {
+                    "constraints": {
+                        "validations": [
+                            {
+                                "isValid": "[not(contains(subscription().displayName, 'Test'))]",
+                                "message": "Can't use test subscription."
+                            },
+                            {
+                                "permission": "Microsoft.Compute/virtualmachines/write",
+                                "message": "Must have write permission for the virtual machine."
+                            },
+                            {
+                                "permission": "Microsoft.Compute/virtualMachines/extensions/write",
+                                "message": "Must have write permission for the extension."
+                            }
+                        ]
+                    },
+                    "resourceProviders": [
+                        "Microsoft.Compute"
+                    ]
+                },
+                "resourceGroup": {
+                    "constraints": {
+                        "validations": [
+                            {
+                                "isValid": "[not(contains(resourceGroup().name, 'test'))]",
+                                "message": "Resource group name can't contain 'test'."
+                            }
+                        ]
+                    },
+                    "allowExisting": true
+                }
+            }
+        },
         "basics": [
             {
                 "name": "logicAppName",
