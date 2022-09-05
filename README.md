@@ -9,6 +9,8 @@ Without using SSPR (which requires certain licensing, and involves extra costs) 
 
 [![Deploy To Azure](https://docs.microsoft.com/en-us/azure/templates/media/deploy-to-azure.svg)](https://portal.azure.com/#blade/Microsoft_Azure_CreateUIDef/CustomDeploymentBlade/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fgrimstoner%2FAADPasswordExpiryNotifier%2Fmaster%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fgrimstoner%2FAADPasswordExpiryNotifier%2Fmaster%2FazuredeployUI.json)
 
+Alternatively, you can manually deploy the solution using the below:
+
 ### Create a Logic App
 
 Create a Logic App in the target subscription by clicking the Add button on the Logic Apps Service in the Azure Portal:
