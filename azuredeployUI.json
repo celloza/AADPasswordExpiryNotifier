@@ -11,7 +11,7 @@
         "config": {
             "isWizard": false,
             "basics": {
-                "description": "This custom template will deploy the **AADPasswordExpiryNotifier** solution, consisting of two Logic Apps. For more information, refer to [this link](https://github.com/grimstoner/AADPasswordExpiryNotifier).",
+                "description": "# AADPasswordExpiryNotifier<br>This custom template will deploy the AADPasswordExpiryNotifier solution, consisting of two Logic Apps. For more information, refer to [this link](https://github.com/grimstoner/AADPasswordExpiryNotifier).",
                 "subscription": {
                     "constraints": {
                         "validations": [
@@ -59,7 +59,8 @@
                     "validationMessage": ""
                 },
                 "visible": true
-            },
+            }],
+        "Configuration": [
             {
                 "name": "MicrosoftGraphClientId",
                 "type": "Microsoft.Common.TextBox",
