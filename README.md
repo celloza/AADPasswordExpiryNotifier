@@ -18,9 +18,9 @@ The Logic App performs a number of steps, which can be reduced to the following 
 > This approach expects that the Logic App will run daily. If not, certain users may not receive certain notifications. This approach was chosen as it provides the simplest solution to not repeatedly email users.
 > A possible improvement would involve saving the state of the notifications to a storage account
 
-5.	Iterate through the resulting action list, and:
-a.	Check if the user’s mail property is not null
-b.	Send an email to the user
+5.	Iterate through the resulting action list, and:<br>
+a.	Check if the user’s mail property is not null<br>
+b.	Send an email to the user<br>
 > The action list is built first and then executed, to ensure that a single step was created containing the email body to be sent. If the email body needs to change (which may be frequently), it needs to only change in one place as a result
 
 ## Deploying the solution automatically
