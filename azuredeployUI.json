@@ -60,129 +60,138 @@
                 },
                 "visible": true
             }],
-        "Configuration": [
+        "steps": [
             {
-                "name": "MicrosoftGraphClientId",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Microsoft Graph Client Id",
-                "defaultValue": "",
-                "toolTip": "Enter the client Id for the application with read access to Microsoft Graph API.",
-                "constraints": {
-                    "required": true,
-                    "regex": "",
-                    "validationMessage": ""
-                },
-                "visible": true
+                "name": "config",
+                "label": "Configuration",
+                "elements": [
+                    {
+                        "name": "MicrosoftGraphClientId",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Microsoft Graph Client Id",
+                        "defaultValue": "",
+                        "toolTip": "Enter the client Id for the application with read access to Microsoft Graph API.",
+                        "constraints": {
+                            "required": true,
+                            "regex": "",
+                            "validationMessage": ""
+                        },
+                        "visible": true
+                    },
+                    {
+                        "name": "MicrosoftGraphSecret",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Microsoft Graph Secret",
+                        "defaultValue": "",
+                        "toolTip": "Enter the secret for the application with read access to Microsoft Graph API.",
+                        "constraints": {
+                            "required": true,
+                            "regex": "",
+                            "validationMessage": ""
+                        },
+                        "visible": true
+                    },
+                    {
+                        "name": "MicrosoftGraphTenant",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Microsoft Graph Tenant",
+                        "defaultValue": "",
+                        "toolTip": "Enter the tenant Id to query users from.",
+                        "constraints": {
+                            "required": true,
+                            "regex": "",
+                            "validationMessage": ""
+                        },
+                        "visible": true
+                    },
+                    {
+                        "name": "SendgridAccountName",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Sendgrid Account Name",
+                        "defaultValue": "sendgrid",
+                        "toolTip": "Enter the name of the SendGrid account to use to send emails.",
+                        "constraints": {
+                            "required": true,
+                            "regex": "",
+                            "validationMessage": ""
+                        },
+                        "visible": true
+                    },
+                    {
+                        "name": "SendgridApiKey",
+                        "type": "Microsoft.Common.PasswordBox",
+                        "label": {
+                            "password": "Sendgrid Api Key",
+                            "confirmPassword": "Confirm password"
+                        },
+                        "toolTip": "Enter the SendGrid API key for the above account.",
+                        "constraints": {
+                            "required": true,
+                            "regex": "",
+                            "validationMessage": ""
+                        },
+                        "options": {
+                            "hideConfirmation": true
+                        },
+                        "visible": true
+                    }
+                ]
             },
             {
-                "name": "MicrosoftGraphSecret",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Microsoft Graph Secret",
-                "defaultValue": "",
-                "toolTip": "Enter the secret for the application with read access to Microsoft Graph API.",
-                "constraints": {
-                    "required": true,
-                    "regex": "",
-                    "validationMessage": ""
-                },
-                "visible": true
-            },
-            {
-                "name": "MicrosoftGraphTenant",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Microsoft Graph Tenant",
-                "defaultValue": "",
-                "toolTip": "Enter the tenant Id to query users from.",
-                "constraints": {
-                    "required": true,
-                    "regex": "",
-                    "validationMessage": ""
-                },
-                "visible": true
-            },
-            {
-                "name": "SendgridAccountName",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Sendgrid Account Name",
-                "defaultValue": "sendgrid",
-                "toolTip": "Enter the name of the SendGrid account to use to send emails.",
-                "constraints": {
-                    "required": true,
-                    "regex": "",
-                    "validationMessage": ""
-                },
-                "visible": true
-            },
-            {
-                "name": "SendgridApiKey",
-                "type": "Microsoft.Common.PasswordBox",
-                "label": {
-                    "password": "Sendgrid Api Key",
-                    "confirmPassword": "Confirm password"
-                },
-                "toolTip": "Enter the SendGrid API key for the above account.",
-                "constraints": {
-                    "required": true,
-                    "regex": "",
-                    "validationMessage": ""
-                },
-                "options": {
-                    "hideConfirmation": true
-                },
-                "visible": true
-            }],
-        "Trigger": [
-            {
-                "name": "RecurrenceFrequency",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Recurrence Frequency",
-                "defaultValue": "Day",
-                "toolTip": "Refrain from editing these values here. You can edit the schedule using the GUI after creation.",
-                "constraints": {
-                    "required": true,
-                    "regex": "",
-                    "validationMessage": ""
-                },
-                "visible": true
-            },
-            {
-                "name": "RecurrenceInterval",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Recurrence Interval",
-                "defaultValue": "1",
-                "toolTip": "Refrain from editing these values here. You can edit the schedule using the GUI after creation.",
-                "constraints": {
-                    "required": true,
-                    "regex": "",
-                    "validationMessage": ""
-                },
-                "visible": true
-            },
-            {
-                "name": "RecurrenceSchedule",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Recurrence Schedule",
-                "defaultValue": "{\"hours\":[\"8\"],\"minutes\":[0]}",
-                "toolTip": "Refrain from editing these values here. You can edit the schedule using the GUI after creation.",
-                "constraints": {
-                    "required": true,
-                    "regex": "",
-                    "validationMessage": ""
-                },
-                "visible": true
-            }
-        ],
-        "steps": [],
+                "name": "trigger",
+                "label": "Trigger",
+                "elements": [
+                    {
+                        "name": "RecurrenceFrequency",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Recurrence Frequency",
+                        "defaultValue": "Day",
+                        "toolTip": "Refrain from editing these values here. You can edit the schedule using the GUI after creation.",
+                        "constraints": {
+                            "required": true,
+                            "regex": "",
+                            "validationMessage": ""
+                        },
+                        "visible": true
+                    },
+                    {
+                        "name": "RecurrenceInterval",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Recurrence Interval",
+                        "defaultValue": "1",
+                        "toolTip": "Refrain from editing these values here. You can edit the schedule using the GUI after creation.",
+                        "constraints": {
+                            "required": true,
+                            "regex": "",
+                            "validationMessage": ""
+                        },
+                        "visible": true
+                    },
+                    {
+                        "name": "RecurrenceSchedule",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Recurrence Schedule",
+                        "defaultValue": "{\"hours\":[\"8\"],\"minutes\":[0]}",
+                        "toolTip": "Refrain from editing these values here. You can edit the schedule using the GUI after creation.",
+                        "constraints": {
+                            "required": true,
+                            "regex": "",
+                            "validationMessage": ""
+                        },
+                        "visible": true
+                    }]
+                }],
+    
         "outputs": {
             "logicAppName": "[basics('logicAppName')]",
-            "MicrosoftGraphClientId": "[Configuration('MicrosoftGraphClientId')]",
-            "MicrosoftGraphSecret": "[Configuration('MicrosoftGraphSecret')]",
-            "MicrosoftGraphTenant": "[Configuration('MicrosoftGraphTenant')]",
-            "SendgridAccountName": "[Configuration('SendgridAccountName')]",
-            "SendgridApiKey": "[Configuration('SendgridApiKey')]",
-            "RecurrenceFrequency": "[Trigger('RecurrenceFrequency')]",
-            "RecurrenceInterval": "[Trigger('RecurrenceInterval')]",
-            "RecurrenceSchedule": "[Trigger('RecurrenceSchedule')]"
+            "MicrosoftGraphClientId": "[config('MicrosoftGraphClientId')]",
+            "MicrosoftGraphSecret": "[config('MicrosoftGraphSecret')]",
+            "MicrosoftGraphTenant": "[config('MicrosoftGraphTenant')]",
+            "SendgridAccountName": "[config('SendgridAccountName')]",
+            "SendgridApiKey": "[config('SendgridApiKey')]",
+            "RecurrenceFrequency": "[trigger('RecurrenceFrequency')]",
+            "RecurrenceInterval": "[trigger('RecurrenceInterval')]",
+            "RecurrenceSchedule": "[trigger('RecurrenceSchedule')]"
         }
     }
 }
