@@ -11,10 +11,10 @@ The Logic App performs a number of steps, which can be reduced to the following 
 2.	Extract the configuration parameters provided in the body of the request
 3.	Get all users in the directory (specified in the DirectoryId variable)
 4.	Iterate through all the users, and build a list of actions to be taken:
-a.	Calculate each user’s password’s expiry date from the date it was last set, and the DaysToExpiryFromLastSet configuration parameter
-b.	If this date falls on FirstWarningDays, add an action item to send the First email warning
-c.	If this date falls on SecondWarningDays, add an action to send the Second email warning
-d.	If this date falls on ThirdWarningDays, add an action to send the Third email warning
+4.1.	Calculate each user’s password’s expiry date from the date it was last set, and the DaysToExpiryFromLastSet configuration parameter
+4.2.	If this date falls on FirstWarningDays, add an action item to send the First email warning
+4.3.	If this date falls on SecondWarningDays, add an action to send the Second email warning
+4.3.	If this date falls on ThirdWarningDays, add an action to send the Third email warning
 > This approach expects that the Logic App will run daily. If not, certain users may not receive certain notifications. This approach was chosen as it provides the simplest solution to not repeatedly email users.
 > A possible improvement would involve saving the state of the notifications to a storage account
 
