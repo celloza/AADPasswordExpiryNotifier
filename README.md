@@ -5,9 +5,13 @@ In some cases, users may have multiple user accounts in different Azure AD tenan
 
 Without using SSPR (which requires certain licensing, and involves extra costs) this solution notifies the user about their pending password reset via email (through SendGrid, O365, or whatever).
 
-## Deploying the solution
+## Deploying the solution automatically
 
 [![Deploy To Azure](https://docs.microsoft.com/en-us/azure/templates/media/deploy-to-azure.svg)](https://portal.azure.com/#blade/Microsoft_Azure_CreateUIDef/CustomDeploymentBlade/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fgrimstoner%2FAADPasswordExpiryNotifier%2Fmaster%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fgrimstoner%2FAADPasswordExpiryNotifier%2Fmaster%2FazuredeployUI.json)
+
+and follow the prompts to configure the solution.
+
+## Deploy the solution manually
 
 Alternatively, you can manually deploy the solution using the below:
 
