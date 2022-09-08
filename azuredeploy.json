@@ -946,7 +946,7 @@
       "name": "[concat(parameters('logicAppName'), '_Trigger')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[reference(parameters('logicAppName'))]"
+        "[parameters('logicAppName')]"
       ],
       "properties": {
         "definition": {
@@ -977,7 +977,7 @@
                 "host": {
                   "triggerName": "manual",
                   "workflow": {
-                    "id": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().location,'/providers/Microsoft.Logic/workflows/',parameters('logicAppName'))]"
+                    "id": "[resourceId('Microsoft.Logic/workflows', parameters('logicAppName'))]"
                   }
                 }
               }
