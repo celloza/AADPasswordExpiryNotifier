@@ -945,7 +945,9 @@
       "apiVersion": "2019-05-01",
       "name": "[concat(parameters('logicAppName'), '_Trigger')]",
       "location": "[resourceGroup().location]",
-      "dependsOn": [],
+      "dependsOn": [
+        "[resourceId('Microsoft.Logic/workflows/', parameters('logicAppName'))]"
+      ],
       "properties": {
         "definition": {
           "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
